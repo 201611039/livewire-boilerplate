@@ -13,7 +13,7 @@ class Role extends ModelsRole
     {
         $where = [
             ['name', '!=', 'super-admin'],
-            // ['name', '!=', 'admin'],
+            ['name', '!=', 'admin'],
         ];
 
         return $query->where($where);
