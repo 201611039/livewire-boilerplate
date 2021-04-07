@@ -16,6 +16,15 @@
                 placeholder="{{ __('auth.placeholder.email') }}" tabindex="2">
         </div>
         <div class="mb-3">
+            <label class="form-label">{{ __('auth.fields.role') }}</label>
+            <select name="role" id="role" class="form-control">
+                <option disabled selected>{{ __('auth.placeholder.role') }}</option>
+                @foreach (\App\Models\Role::userGrantingRoles()->get() as $role)
+                    <option value="{{ $role->name }}">{{ $role->proper_name }}</option>
+                @endforeach
+            </select>
+        </div>
+        <div class="mb-3">
             <label class="form-label">{{ __('auth.fields.password') }}</label>
             <div class="input-group input-group-flat">
                 <input type="password" name="password" required autocomplete="new-password" class="form-control"

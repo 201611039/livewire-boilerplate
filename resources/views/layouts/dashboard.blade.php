@@ -40,7 +40,7 @@
                 <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbar-menu">
                     <span class="navbar-toggler-icon"></span>
                 </button>
-                <a href="{{ route('home') }}" class="navbar-brand navbar-brand-autodark d-none-navbar-horizontal pr-0 pr-md-3">
+                <a href="{{ route('dashboard') }}" class="navbar-brand navbar-brand-autodark d-none-navbar-horizontal pr-0 pr-md-3">
                     <img src="{{ asset('/static/logo.svg') }}" height="32" alt="{{ config('app.name', 'Laravel') }}"
                         class="navbar-brand-image" id="logo">
                 </a>

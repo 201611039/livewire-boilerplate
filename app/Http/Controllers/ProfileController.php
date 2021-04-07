@@ -3,7 +3,13 @@
 namespace App\Http\Controllers;
 
 use App\Http\Controllers;
+use App\Models\User;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\FacadesAuth;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Redirect;
+use Illuminate\Support\Facades\Storage;
 use Intervention\Image\Facades\Image;
 
 class ProfileController extends Controller
@@ -15,7 +21,8 @@ class ProfileController extends Controller
      * @return \Illuminate\View\View
      */
     public function editProfile(){
-        $devices = \DB::table('sessions')->where('user_id', \Auth::user()->id)->get()->reverse();
+        $this->authorize('edit-profile');
+        $devices = DB::table('sessions')->where('user_id', Auth::user()->id)->get()->reverse();
         return view('profile.edit', ['devices' => $devices]);
     }
 
@@ -26,6 +33,8 @@ class ProfileController extends Controller
      * @return \Illuminate\Http\Response
      */
     public function updateAvatar(Request $request){
+        $this->authorize('change-avatar');
+
         // validate
         $request->validate([
             'avatar' => 'required|image|mimes:jpeg,png,jpg,gif,webp|max:2048|dimensions:min_width=200,min_height=200',
@@ -36,9 +45,9 @@ class ProfileController extends Controller
 
         // process avatar and redirect back
         if($this->processAvatar($request)) {
-            return \Redirect::back()->with('success', 'Updated the avatar successfully!');
+            return Redirect::back()->with('success', 'Updated the avatar successfully!');
         } else {
-            return \Redirect::back()->withErrors(['avatar', 'Failed to update the avatar']);
+            return Redirect::back()->withErrors(['avatar', 'Failed to update the avatar']);
         }
     }
 
@@ -49,6 +58,8 @@ class ProfileController extends Controller
      * @return boolean
      */
     private function processAvatar($request){
+        $this->authorize('change-avatar');
+
         // get file
         $file = $request->file('avatar');
         // get filename name with extension
@@ -64,12 +75,12 @@ class ProfileController extends Controller
             $constraint->upsize();
         })->encode('png');
         // save avatar to public storage
-        $save = \Storage::put("public/avatars/{$uniqueFileName}", $resize->__toString());
+        $save = Storage::put("public/avatars/{$uniqueFileName}", $resize->__toString());
 
         // if avatar has been stored successfully
         if($save){
             // update user table
-            $user = \Auth::user();
+            $user = User::find(Auth::id());
             $user->avatar = $uniqueFileName;
             $user->save();
             // return success
@@ -87,11 +98,13 @@ class ProfileController extends Controller
      * @return \Illuminate\Http\Response
      */
     public function removeOldAvatar($internalRequest = false){
-        $user = \Auth::user();
+        $this->authorize('remove-avatar');
+
+        $user = User::find(Auth::id());
         // if user has an avatar currently in use
         if($user->avatar){
             // delete avatar from storage
-            \Storage::delete('public/avatars/'.$user->avatar);
+            Storage::delete('public/avatars/'.$user->avatar);
         }
         $user->avatar = null;
         $user->save();
@@ -100,7 +113,7 @@ class ProfileController extends Controller
         if($internalRequest){
             return true;
         } else {
-            return \Redirect::back()->with('success', 'The avatar has been deleted successfully!');
+            return Redirect::back()->with('success', 'The avatar has been deleted successfully!');
         }
     }
 
@@ -112,7 +125,9 @@ class ProfileController extends Controller
      * @return \Illuminate\Http\Response
      */
     public function removeDevice(Request $request, $id){
-        $delete = \DB::table('sessions')->where('id', $id)->delete();
-        return \Redirect::back()->with('success', 'The device has been deleted successfully!');
+        $this->authorize('remove-device');
+
+        $delete = DB::table('sessions')->where('id', $id)->delete();
+        return Redirect::back()->with('success', 'The device has been deleted successfully!');
     }
 }
